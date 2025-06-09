@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Az Kitchen | Customer Portal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body onload="init()">
+
+    <div class="app-bar" id="mainAppBar">
+        <h1>Az Kitchen | Customer Order</h1>
+        <div class="table-info" id="tableInfo">Table #5</div>
+    </div>
+
+    <div class="main-content">
+
+        <div id="role-selection-page" class="page active">
+            <div class="role-selection-container">
+                <h2>Welcome to Az Kitchen!</h2>
+                <p>Please select your role to proceed.</p>
+                <div class="role-buttons">
+                    <button class="role-btn" onclick="showLoginPage('customer')">I'm a Customer</button>
+                    <button class="role-btn" onclick="showLoginPage('staff')">I'm a Staff</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="login-page" class="page">
+            <div class="checkout-form">
+                <h2 id="login-header">Customer Login</h2>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="loginEmail" placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" id="loginPassword" placeholder="Enter your password">
+                </div>
+                <button class="checkout-btn" onclick="handleLogin()">Login</button>
+            </div>
+        </div>
+
+        <div id="customer-order-type-page" class="page">
+            <div class="role-selection-container">
+                <h2>How would you like to order?</h2>
+                <p>Choose your preferred ordering method.</p>
+                <div class="role-buttons">
+                    <button class="role-btn" onclick="selectOrderType('walkin')">Walk-in Order</button>
+                    <button class="role-btn" onclick="selectOrderType('online')">Online Order</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="menu-page" class="page">
+            <div class="recommended-section">
+                <h2>Hot Deals Now!</h2>
+                <div class="recommended-items"></div>
+            </div>
+            <div class="menu-categories">
+                <button class="category-chip active" onclick="filterCategory('all', this, 'customer')">All</button>
+                <button class="category-chip" onclick="filterCategory('Main Course', this, 'customer')">Mains</button>
+                <button class="category-chip" onclick="filterCategory('Salad', this, 'customer')">Salads</button>
+                <button class="category-chip" onclick="filterCategory('Pasta', this, 'customer')">Pasta</button>
+                <button class="category-chip" onclick="filterCategory('Pizza', this, 'customer')">Pizza</button>
+                <button class="category-chip" onclick="filterCategory('Dessert', this, 'customer')">Desserts</button>
+                <button class="category-chip" onclick="filterCategory('Drinks', this, 'customer')">Drinks</button>
+            </div>
+            <div class="menu-grid" id="menuGrid">
+            </div>
+        </div>
+
+        <div id="cart-page" class="page">
+            <div class="cart-header">
+                <h2>Your Cart</h2>
+                <p>Review your order before placing</p>
+            </div>
+            <div id="cartContent">
+            </div>
+        </div>
+
+        <div id="checkout-page" class="page">
+            <div class="cart-header">
+                <h2>Checkout Details</h2>
+                <p>Complete your order</p>
+            </div>
+            <div class="checkout-form">
+                <h3>Contact Information</h3>
+                <div class="form-group">
+                    <label class="form-label">Name</label>
+                    <input type="text" class="form-input" id="checkoutName" placeholder="Enter your name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="checkoutEmail" placeholder="Enter your email" disabled>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" class="form-input" id="checkoutPhone" placeholder="Enter your phone number">
+                </div>
+
+                <h3 style="margin-top: 25px;">Shipping Address</h3>
+                <div class="form-group">
+                    <label class="form-label">Address</label>
+                    <textarea class="form-input" id="checkoutAddress" rows="3"
+                        placeholder="Enter your full address"></textarea>
+                </div>
+
+                <h3 style="margin-top: 25px;">Payment Method</h3>
+                <div class="form-group">
+                    <label class="form-label">Select Payment</label>
+                    <select class="form-input" id="paymentMethod">
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="Cash on Delivery">Cash on Delivery</option>
+                        <option value="Online Transfer">Online Transfer</option>
+                    </select>
+                </div>
+
+                <button class="checkout-btn" onclick="makeOnlinePayment()">Make Payment</button>
+            </div>
+        </div>
+
+
+        <div id="orders-page" class="page">
+            <div class="cart-header">
+                <h2>Your Orders</h2>
+                <p>Track your recent orders</p>
+            </div>
+            <div class="orders-list" id="ordersList">
+            </div>
+        </div>
+
+        <div id="profile-page" class="page">
+            <div class="cart-header">
+                <h2>Profile</h2>
+                <p>Manage your account</p>
+            </div>
+            <div class="checkout-form">
+                <div class="form-group">
+                    <label class="form-label">Name</label>
+                    <input type="text" class="form-input" id="profileName" placeholder="Enter your name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="profileEmail" placeholder="Enter your email" disabled>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" class="form-input" id="profilePhone" placeholder="Phone number">
+                </div>
+                <button class="checkout-btn" onclick="saveProfile()">Save Profile</button>
+                <button class="checkout-btn" style="background-color: #dc3545; margin-top: 10px;"
+                    onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <div class="bottom-nav" id="customerNav">
+            <div class="nav-item active" onclick="showPage('menu-page', this)">
+                <span class="icon">🍽️</span>
+                <span class="label">Menu</span>
+            </div>
+            <div class="nav-item" onclick="showPage('cart-page', this)">
+                <span class="icon">🛒</span>
+                <span class="label">Cart</span>
+                <span class="cart-badge" id="cartBadge" style="display: none;">0</span>
+            </div>
+            <div class="nav-item" onclick="showPage('orders-page', this)">
+                <span class="icon">📋</span>
+                <span class="label">Orders</span>
+            </div>
+            <div class="nav-item" onclick="showPage('profile-page', this)">
+                <span class="icon">👤</span>
+                <span class="label">Profile</span>
+            </div>
+        </div>
+
+        <div id="toast" class="toast"></div>
+        <script src="script.js"></script>
+
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Az Kitchen | Staff Portal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body onload="initStaff()">
+
+    <div class="app-bar" id="staffAppBar">
+        <h1>Az Kitchen | Staff Portal</h1>
+        <div class="table-info" id="staffTableInfo"></div>
+    </div>
+
+    <div class="main-content">
+
+        <div id="staff-order-menu-page" class="page active">
+            <div class="cart-header">
+                <h2>Take New Order</h2>
+                <div class="form-group" style="margin-top: 10px;">
+                    <label class="form-label">Table Number</label>
+                    <input type="number" class="form-input" id="staffOrderTableNumber" value="1" min="1">
+                </div>
+                <p>Select items for the customer's order. Items will be added to the current active order for the table,
+                    or a new order will be created.</p>
+            </div>
+            <div class="menu-categories">
+                <button class="category-chip active" onclick="filterCategory('all', this, 'staff')">All</button>
+                <button class="category-chip" onclick="filterCategory('Main Course', this, 'staff')">Mains</button>
+                <button class="category-chip" onclick="filterCategory('Salad', this, 'staff')">Salads</button>
+                <button class="category-chip" onclick="filterCategory('Pasta', this, 'staff')">Pasta</button>
+                <button class="category-chip" onclick="filterCategory('Pizza', this, 'staff')">Pizza</button>
+                <button class="category-chip" onclick="filterCategory('Dessert', this, 'staff')">Desserts</button>
+                <button class="category-chip" onclick="filterCategory('Drinks', this, 'staff')">Drinks</button>
+            </div>
+            <div class="menu-grid" id="staffMenuGrid">
+            </div>
+        </div>
+
+        <div id="staff-manage-orders-page" class="page">
+            <div class="cart-header">
+                <h2>Manage Orders</h2>
+                <p>Update or delete existing orders</p>
+            </div>
+            <div class="orders-list" id="staffOrdersList">
+            </div>
+        </div>
+
+        <div id="staff-profile-page" class="page">
+            <div class="cart-header">
+                <h2>Profile</h2>
+                <p>Manage your account</p>
+            </div>
+            <div class="checkout-form">
+                <div class="form-group">
+                    <label class="form-label">Staff Name</label>
+                    <input type="text" class="form-input" id="staffProfileName" placeholder="Enter your name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="staffProfileEmail" placeholder="Enter your email"
+                        disabled>
+                </div>
+                <button class="checkout-btn" onclick="saveStaffProfile()">Save Profile</button>
+                <button class="checkout-btn" style="background-color: #dc3545; margin-top: 10px;"
+                    onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <div class="bottom-nav" id="staffNav">
+            <div class="nav-item active" onclick="showStaffPage('staff-order-menu-page', this)">
+                <span class="icon">📝</span>
+                <span class="label">New Order</span>
+            </div>
+            <div class="nav-item" onclick="showStaffPage('staff-manage-orders-page', this)">
+                <span class="icon">⏱️</span>
+                <span class="label">Orders</span>
+            </div>
+            <div class="nav-item" onclick="showStaffPage('staff-profile-page', this)">
+                <span class="icon">👤</span>
+                <span class="label">Profile</span>
+            </div>
+        </div>
+
+        <div id="toast" class="toast"></div>
+        <script src="script.js"></script>
+
+    </div>
+</body>
+
+</html>
