@@ -32,8 +32,8 @@ const users = {
 
 function init() {
     loadOrders();
-    userRole = sessionStorage.getItem('userRole');
-    loggedInUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
+    userRole = localStorage.getItem('userRole');
+    loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
     customerOrderType = sessionStorage.getItem('customerOrderType');
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -73,12 +73,12 @@ function init() {
 
 function initStaff() {
     loadOrders();
-    userRole = sessionStorage.getItem('userRole');
-    loggedInUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
+    userRole = localStorage.getItem('userRole');
+    loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
 
     if (userRole && loggedInUser && userRole === 'staff') {
         document.getElementById('staff-order-menu-page').classList.add('active');
-        document.getElementById('staffAppBar').style.display = 'flex'; r
+        document.getElementById('staffAppBar').style.display = 'flex';
         document.getElementById('staffNav').style.display = 'flex';
         document.getElementById('staffTableInfo').textContent = `Logged in as: ${loggedInUser.name}`;
         loadMenuItems('staff');
@@ -88,49 +88,72 @@ function initStaff() {
     }
 }
 
-
 // --- Authentication and Role Management ---
 
 let currentLoginRole = '';
 
 function showLoginPage(role) {
-    currentLoginRole = role;
-    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-    document.getElementById('login-page').classList.add('active');
-    document.getElementById('login-header').textContent = `${role.charAt(0).toUpperCase() + role.slice(1)} Login`;
-    document.getElementById('loginEmail').value = '';
-    document.getElementById('loginPassword').value = '';
+    userRole = role; // Set the global userRole variable
+    const loginHeader = document.getElementById('login-header');
+    if (role === 'customer') {
+        loginHeader.textContent = 'Customer Login';
+    } else if (role === 'staff') {
+        loginHeader.textContent = 'Staff Login';
+    }
+    showPage('login-page');
 }
 
 function handleLogin() {
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
 
-    if (users[email] && users[email].password === password && users[email].role === currentLoginRole) {
-        userRole = users[email].role;
-        loggedInUser = {
-            email: email,
-            name: users[email].name,
-            role: userRole,
-            phone: users[email].phone || '',
-            address: users[email].address || ''
-        };
-
-        sessionStorage.setItem('userRole', userRole);
-        sessionStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
-        showToast(`Welcome, ${loggedInUser.name}!`);
-
-        if (userRole === 'customer') {
-            document.getElementById('login-page').classList.remove('active');
-            document.getElementById('customer-order-type-page').classList.add('active');
-            document.getElementById('mainAppBar').style.display = 'none';
-            document.getElementById('customerNav').style.display = 'none';
-        } else { // Staff login
-            window.location.href = 'staff.html';
-        }
-    } else {
-        showToast('Invalid credentials or role mismatch', 'error');
+    if (!email || !password || !userRole) {
+        showToast('Please enter email, password, and select a role.', false);
+        return;
     }
+
+    const payload = {
+        action: 'login',
+        email: email,
+        password: password,
+        role: userRole
+    };
+
+    console.log('Posting to auth.php with payload:', JSON.stringify(payload));
+
+    fetch('api/auth.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Login response:', data);
+
+            if (data.success) {
+                showToast(data.message, true);
+                loggedInUser = data.user;
+                localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
+                localStorage.setItem('userRole', userRole);
+
+                if (userRole === 'customer') {
+                    document.getElementById('login-page').classList.remove('active');
+                    document.getElementById('customer-order-type-page').classList.add('active');
+                    document.getElementById('mainAppBar').style.display = 'none';
+                    document.getElementById('customerNav').style.display = 'none';
+                } else if (userRole === 'staff') {
+                    window.location.href = 'staff.html';
+                }
+            } else {
+                showToast(data.message, false);
+            }
+        })
+        .catch(error => {
+            console.error('Login error:', error);
+            showToast('An error occurred during login. Please try again.', false);
+        });
 }
 
 function selectOrderType(type) {
@@ -164,6 +187,7 @@ function updateAppBarForCustomerOrderType() {
 
 
 function logout() {
+    localStorage.clear();
     sessionStorage.clear();
     cart = {};
     userRole = null;
@@ -329,7 +353,6 @@ function addToCartFromMenu(itemId, target = 'customer') {
             return;
         }
 
-        // Find an existing active order for this table
         let activeOrder = orders.find(order =>
             order.table == tableNumber &&
             ['Pending', 'In Progress', 'Ready'].includes(order.status)
