@@ -50,21 +50,23 @@
         </div>
 
         <div id="staff-profile-page" class="page">
-            <div class="cart-header">
-                <h2>Profile</h2>
-                <p>Manage your account</p>
-            </div>
             <div class="checkout-form">
+                <h2>Your Profile</h2>
                 <div class="form-group">
-                    <label class="form-label">Staff Name</label>
-                    <input type="text" class="form-input" id="staffProfileName" placeholder="Enter your name">
+                    <label class="form-label">Name</label>
+                    <input type="text" class="form-input" id="staffProfileName" placeholder="Your name" readonly>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Email</label>
-                    <input type="email" class="form-input" id="staffProfileEmail" placeholder="Enter your email"
-                        disabled>
+                    <input type="email" class="form-input" id="staffProfileEmail" placeholder="Your email" readonly>
                 </div>
-                <button class="checkout-btn" onclick="saveStaffProfile()">Save Profile</button>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" id="staffProfilePassword" placeholder="New Password"
+                        readonly>
+                </div>
+
+                <button class="checkout-btn" id="editProfileBtn" onclick="toggleProfileEdit()">Edit Profile</button>
                 <button class="checkout-btn" style="background-color: #dc3545; margin-top: 10px;"
                     onclick="logout()">Logout</button>
             </div>

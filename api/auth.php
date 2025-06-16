@@ -3,6 +3,17 @@ require_once 'config.php';
 
 header('Content-Type: application/json');
 
+function refValues($arr) {
+    if (strnatcmp(phpversion(), '5.3') >= 0) {
+        $refs = [];
+        foreach ($arr as $key => $value) {
+            $refs[$key] = &$arr[$key];
+        }
+        return $refs;
+    }
+    return $arr;
+}
+
 $response = ['success' => false, 'message' => ''];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -65,69 +76,187 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     } 
     // register {name, email, password, [phoneNumber, address], role} -> response success/failure
-    elseif ($action === 'register') {
-        $name = $input['name'] ?? '';
+    else if ($action === 'register') {
         $email = $input['email'] ?? '';
         $password = $input['password'] ?? '';
-        $phoneNumber = $input['phoneNumber'] ?? '';
-        $address = $input['address'] ?? '';
-        $role = $input['role'] ?? '';
-
-        if (empty($name) || empty($email) || empty($password) || empty($role)) {
+        $name = $input['name'] ?? '';
+        $role = $input['role'] ?? ''; // Should be 'customer' for this flow
+    
+        if (empty($email) || empty($password) || empty($name) || empty($role)) {
             $response['message'] = 'Name, email, password, and role are required for registration.';
             echo json_encode($response);
             exit();
         }
-
-        $table = '';
-        $insert_columns = '';
-        $bind_types = '';
-        $bind_values = [];
-
+    
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+    
         if ($role === 'customer') {
+            $phoneNumber = $input['phoneNumber'] ?? null; // NEW: Get phone number for customer
+            $address = $input['address'] ?? null; // If you have an address field in your DB
             $table = 'Customers';
-            $insert_columns = 'name, email, password, phoneNumber, address';
-            $bind_types = 'sssss';
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            $bind_values = [$name, $email, $hashed_password, $phoneNumber, $address];
+            $insert_columns = 'name, email, password, phoneNumber'; // Include phoneNumber
+            $placeholders = '?, ?, ?, ?';
+            $bind_types = 'ssss'; // String for name, email, password, phoneNumber
+            $bind_values = [$name, $email, $hashed_password, $phoneNumber]; // Include phoneNumber
+    
+            // Check if email already exists
+            $stmt_check = $mysqli->prepare("SELECT customerID FROM Customers WHERE email = ?");
+            $stmt_check->bind_param("s", $email);
+            $stmt_check->execute();
+            $stmt_check->store_result();
+            if ($stmt_check->num_rows > 0) {
+                $response['message'] = 'Email already registered.';
+                echo json_encode($response);
+                exit();
+            }
+            $stmt_check->close();
+    
         } elseif ($role === 'staff') {
+            // Staff registration (if you allow it via a similar form)
             $table = 'Staff';
             $insert_columns = 'name, email, password';
+            $placeholders = '?, ?, ?';
             $bind_types = 'sss';
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             $bind_values = [$name, $email, $hashed_password];
+    
+            // Check if email already exists
+            $stmt_check = $mysqli->prepare("SELECT staffID FROM Staff WHERE email = ?");
+            $stmt_check->bind_param("s", $email);
+            $stmt_check->execute();
+            $stmt_check->store_result();
+            if ($stmt_check->num_rows > 0) {
+                $response['message'] = 'Email already registered.';
+                echo json_encode($response);
+                exit();
+            }
+            $stmt_check->close();
+    
+        } else {
+            $response['message'] = 'Invalid role for registration.';
+            echo json_encode($response);
+            exit();
+        }
+    
+        $query = "INSERT INTO " . $table . " (" . $insert_columns . ") VALUES (" . $placeholders . ")";
+        $stmt = $mysqli->prepare($query);
+    
+        if ($stmt === false) {
+            $response['message'] = 'Prepare failed: ' . $mysqli->error;
+            echo json_encode($response);
+            exit();
+        }
+
+        call_user_func_array([$stmt, 'bind_param'], refValues(array_merge([$bind_types], $bind_values)));
+    
+        if ($stmt->execute()) {
+            $response['success'] = true;
+            $response['message'] = ucfirst($role) . ' registered successfully!';
+        } else {
+            $response['message'] = 'Registration failed: ' . $stmt->error;
+        }
+        $stmt->close();
+    }
+    elseif ($action === 'updateProfile') {
+        $role = $input['role'] ?? '';
+        $id = $input['customerID'] ?? ($input['staffID'] ?? null); // Adjust to get the correct ID
+        $name = $input['name'] ?? null;
+        $phoneNumber = $input['phoneNumber'] ?? null;
+        $address = $input['address'] ?? null;
+        $password = $input['password'] ?? null; // If password can be updated
+        $email = $input['email'] ?? null;
+        $password = $input['password'] ?? null;
+        $table = '';
+        $id_column = '';
+        $update_fields = [];
+        $bind_types = "";
+        $bind_values = [];
+    
+        if ($role === 'customer') {
+            $table = 'Customers';
+            $id_column = 'customerID';
+            if ($name !== null) {
+                $update_fields[] = 'name = ?';
+                $bind_types .= 's';
+                $bind_values[] = $name;
+            }
+            if ($phoneNumber !== null) {
+                $update_fields[] = 'phoneNumber = ?';
+                $bind_types .= 's';
+                $bind_values[] = $phoneNumber;
+            }
+            if ($address !== null) {
+                $update_fields[] = 'address = ?';
+                $bind_types .= 's';
+                $bind_values[] = $address;
+            }
+            if ($email !== null) {
+                $update_fields[] = 'email = ?';
+                $bind_types .= 's';
+                $bind_values[] = $email;
+            }
+            if ($password !== null) { // Check if password is provided in the input
+                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                $update_fields[] = 'password = ?';
+                $bind_types .= 's';
+                $bind_values[] = $hashed_password;
+            }
+
+            // Add more fields if they can be updated for customers
+        } elseif ($role === 'staff') {
+            $table = 'Staff';
+            $id_column = 'staffID';
+            if ($name !== null) {
+                $update_fields[] = 'name = ?';
+                $bind_types .= 's';
+                $bind_values[] = $name;
+            }
+            if ($email !== null) {
+                $update_fields[] = 'email = ?';
+                $bind_types .= 's';
+                $bind_values[] = $email;
+            }
+            if ($password !== null) { // Check if password is provided in the input
+                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                $update_fields[] = 'password = ?';
+                $bind_types .= 's';
+                $bind_values[] = $hashed_password;
+            }
+            
         } else {
             $response['message'] = 'Invalid role.';
             echo json_encode($response);
             exit();
         }
-
-        $stmt_check = $mysqli->prepare("SELECT email FROM " . $table . " WHERE email = ?");
-        $stmt_check->bind_param("s", $email);
-        $stmt_check->execute();
-        $stmt_check->store_result();
-        if ($stmt_check->num_rows > 0) {
-            $response['message'] = 'User with this email already exists.';
-            $stmt_check->close();
+    
+        if (empty($update_fields) || $id === null) {
+            $response['message'] = 'No valid fields to update or ID is missing.';
             echo json_encode($response);
             exit();
         }
-        $stmt_check->close();
-
-        // Insert new user
-        $placeholders = implode(', ', array_fill(0, count($bind_values), '?'));
-        $stmt_insert = $mysqli->prepare("INSERT INTO " . $table . " (" . $insert_columns . ") VALUES (" . $placeholders . ")");
-        $stmt_insert->bind_param($bind_types, ...$bind_values);
-
-        if ($stmt_insert->execute()) {
-            $response['success'] = true;
-            $response['message'] = 'Registration successful!';
-        } else {
-            $response['message'] = 'Registration failed: ' . $mysqli->error;
+    
+        $query = "UPDATE " . $table . " SET " . implode(', ', $update_fields) . " WHERE " . $id_column . " = ?";
+        $bind_types .= 'i'; // Assuming ID is an integer
+        $bind_values[] = $id;
+    
+        $stmt = $mysqli->prepare($query);
+        if ($stmt === false) {
+            $response['message'] = 'Prepare failed: ' . $mysqli->error;
+            echo json_encode($response);
+            exit();
         }
-        $stmt_insert->close();
-
-    } else {
+    
+        $stmt->bind_param($bind_types, ...$bind_values);
+    
+        if ($stmt->execute()) {
+            $response['success'] = true;
+            $response['message'] = ucfirst($role) . ' profile updated successfully!';
+        } else {
+            $response['message'] = 'Profile update failed: ' . $stmt->error;
+        }
+        $stmt->close();
+    }
+    
+    else {
         $response['message'] = 'Invalid action specified.';
     }
 } else {

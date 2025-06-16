@@ -13,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $input_data['action'] ?? $_POST['action'] ?? ''; 
 
     // addMeal {name, category, price, description, image} -> request meal details with image, response success message
+    
     if ($action === 'addMeal') {
         $name = $_POST['name'] ?? '';
         $category = $_POST['category'] ?? '';
@@ -50,8 +51,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $stmt->close();
 
+    } 
+
     // getMeals {} -> request nothing, response meal list (no images)
-    } else if ($action === 'getMeals') {
+
+    else if ($action === 'getMeals') {
         $meals = [];
         $result = $mysqli->query("SELECT mealID, name, category, price, description FROM Meals"); // Avoid large image data
 
@@ -72,6 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_GET['action'] ?? '';
 
     // getMealImage {mealID} -> request meal ID, response image file (jpeg)
+    
     if ($action === 'getMealImage') {
         $mealID = $_GET['mealID'] ?? ''; 
         

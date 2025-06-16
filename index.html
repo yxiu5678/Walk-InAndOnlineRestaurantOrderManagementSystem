@@ -40,6 +40,36 @@
                     <input type="password" class="form-input" id="loginPassword" placeholder="Enter your password">
                 </div>
                 <button class="checkout-btn" onclick="handleLogin()">Login</button>
+                <button class="text-button" id="registerBtn" onclick="showRegisterPage()">Register</button>
+            </div>
+        </div>
+
+        <div id="register-page" class="page">
+            <div class="checkout-form">
+                <h2>Customer Registration</h2>
+                <div class="form-group">
+                    <label class="form-label">Name</label>
+                    <input type="text" class="form-input" id="registerName" placeholder="Your full name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="registerEmail" placeholder="Your email">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" class="form-input" id="registerPhone" placeholder="Your phone number">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" id="registerPassword" placeholder="Choose a password">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirm Password</label>
+                    <input type="password" class="form-input" id="registerConfirmPassword"
+                        placeholder="Confirm your password">
+                </div>
+                <button class="checkout-btn" onclick="registerCustomer()">Register</button>
+                <button class="text-button" onclick="showLoginPage('customer')">Back to Login</button>
             </div>
         </div>
 
@@ -90,17 +120,16 @@
                 <h3>Contact Information</h3>
                 <div class="form-group">
                     <label class="form-label">Name</label>
-                    <input type="text" class="form-input" id="checkoutName" placeholder="Enter your name">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-input" id="checkoutEmail" placeholder="Enter your email" disabled>
+                    <input type="text" class="form-input" id="checkoutName" placeholder="Your Name">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Phone Number</label>
-                    <input type="tel" class="form-input" id="checkoutPhone" placeholder="Enter your phone number">
+                    <input type="tel" class="form-input" id="checkoutPhone" placeholder="Phone number">
                 </div>
-
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="checkoutEmail" placeholder="Email">
+                </div>
                 <h3 style="margin-top: 25px;">Shipping Address</h3>
                 <div class="form-group">
                     <label class="form-label">Address</label>
@@ -133,24 +162,26 @@
         </div>
 
         <div id="profile-page" class="page">
-            <div class="cart-header">
-                <h2>Profile</h2>
-                <p>Manage your account</p>
-            </div>
             <div class="checkout-form">
+                <h2>Your Profile</h2>
                 <div class="form-group">
                     <label class="form-label">Name</label>
-                    <input type="text" class="form-input" id="profileName" placeholder="Enter your name">
+                    <input type="text" class="form-input" id="profileName" placeholder="Your name" readonly>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Email</label>
-                    <input type="email" class="form-input" id="profileEmail" placeholder="Enter your email" disabled>
+                    <input type="email" class="form-input" id="profileEmail" placeholder="Your email" readonly>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Phone Number</label>
-                    <input type="tel" class="form-input" id="profilePhone" placeholder="Phone number">
+                    <input type="tel" class="form-input" id="profilePhone" placeholder="Phone number" readonly>
                 </div>
-                <button class="checkout-btn" onclick="saveProfile()">Save Profile</button>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" id="profilePassword" placeholder="New Password" readonly>
+                </div>
+
+                <button class="checkout-btn" id="editProfileBtn" onclick="toggleProfileEdit()">Edit Profile</button>
                 <button class="checkout-btn" style="background-color: #dc3545; margin-top: 10px;"
                     onclick="logout()">Logout</button>
             </div>
